@@ -1,0 +1,1 @@
+python trainer_first_stage.py --dataset_dir "./Pie_Bench" --exp_name exp/fine_tuning_ddim/
