@@ -5,6 +5,7 @@ from torchvision import transforms
 from PIL import Image
 import numpy as np
 import re
+import torch
 
 def mask_decode(encoded_mask,image_shape=[512,512]):
     length=image_shape[0]*image_shape[1]
@@ -31,7 +32,7 @@ class AutoEditDataset(Dataset):
         super().__init__()
         self.annotation_folder = annotation_folder
         if train:
-            annotation_file = os.path.join(self.annotation_folder, "train_set.json")
+            annotation_file = os.path.join(self.annotation_folder, "all_train_val.json")
         else:
             annotation_file = os.path.join(self.annotation_folder, "val_set.json")
         
@@ -52,8 +53,22 @@ class AutoEditDataset(Dataset):
         src_prompt = anns["original_prompt"]
         tgt_prompt = anns["editing_prompt"]
 
+        src_edit_words = re.findall(r'\[(.*?)\]', src_prompt)
+        tgt_edit_words = re.findall(r'\[(.*?)\]', tgt_prompt)
+        src_edit_word = ""
+        tgt_edit_word = ""
+        for i, word in enumerate(src_edit_words):
+            src_edit_word += word
+            if i < len(src_edit_words) - 1:
+                src_edit_word += ", "
+        for i, word in enumerate(tgt_edit_words):
+            tgt_edit_word += word
+            if i < len(tgt_edit_words) - 1:
+                tgt_edit_word += ", "
+
         src_prompt = re.sub(r'\[(\w+)\]', r'\1', src_prompt)
         tgt_prompt = re.sub(r'\[(\w+)\]', r'\1', tgt_prompt)
+        
 
         input_ids = self.tokenizer(
             [src_prompt, tgt_prompt],
@@ -66,10 +81,35 @@ class AutoEditDataset(Dataset):
         image = Image.open(img_file).convert("RGB")
         image = self.image_transform(image)
         mask = anns["mask"]
-        mask = mask_decode(mask, (image.shape[1], image.shape[2]))
+        mask = torch.from_numpy(mask_decode(mask, (image.shape[1], image.shape[2]))).float()
+        editing_type_id = int(anns["editing_type_id"])
+        if tgt_edit_word == "":
+            editing_type_id = 3
+        edit_prompt = anns["edit_word"]
+            
         return {
             "src_input_ids": src_input_ids,
             "tgt_input_ids": tgt_input_ids,
-            "image": image,
-            "mask": mask
+            "images": image,
+            "masks": mask,
+            'editing_type_ids': editing_type_id,
+            "edit_prompts": edit_prompt
         }
+
+def collate_fn(batches):
+    src_input_ids = torch.stack([batch['src_input_ids'] for batch in batches])
+    tgt_input_ids = torch.stack([batch["tgt_input_ids"] for batch in batches])
+    images = torch.stack([batch["images"] for batch in batches])
+    editing_type_ids = torch.tensor([batch["editing_type_ids"] for batch in batches]).long()
+    # src_edit_words = [batch["src_edit_words"] for batch in batches]
+    # tgt_edit_words = [batch["tgt_edit_words"] for batch in batches]
+    edit_prompts = [batch["edit_prompts"] for batch in batches]
+    masks = torch.stack([batch["masks"] for batch in batches])
+    return {
+        "src_input_ids": src_input_ids,
+        "tgt_input_ids": tgt_input_ids,
+        "images": images,
+        "masks": masks,
+        "editing_type_ids": editing_type_ids,
+        "edit_prompts": edit_prompts
+    }
