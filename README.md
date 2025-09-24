@@ -28,6 +28,8 @@ transformers==4.37.2
 
 Note that the version of diffusers is low with the SD 1.4 model, I will try to update the code to make it compatible with recent diffusers version.
 
+Stay tuned for SDXL and DiT model.
+
 ## Checkpoint
 
 Checkpoint path can be downloaded [here](https://drive.google.com/drive/folders/1uA2EZ2RogMFQFzzIVf2MPusmTKAAwaF0?usp=sharing). Each folder will be the checkpoint of AutoEdit with the corresponding method (see the Running AutoEdit section).
@@ -52,6 +54,16 @@ python run_training_wo_attention.py \
 ```python
 python run_training.py \
   --checkpoint "exp/ddpm_ppo/checkpoint.ckpt" \
+  --input_image_path "assets/cake.jpg" \
+  --src_prompt "a round cake with orange frosting on a wooden plate" \
+  --tgt_prompt "a square cake with orange frosting on a wooden plate" \
+  --save_edit_path "output/edit_cake.png"
+```
+
+**Null-text**: Null-text inversion and searching for inversion timestep
+```python
+python null_text_inversion.py \
+  --checkpoint_path "exp/null_text_ppo/checkpoint.ckpt" \
   --input_image_path "assets/cake.jpg" \
   --src_prompt "a round cake with orange frosting on a wooden plate" \
   --tgt_prompt "a square cake with orange frosting on a wooden plate" \
