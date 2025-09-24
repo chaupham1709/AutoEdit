@@ -1,1 +1,0 @@
-python trainer_ppo.py --dataset_dir "./Pie_Bench" --exp_name exp/ppo_ddim --checkpoint_path exp/fine_tuning_ddim/checkpoint_19.ckpt
