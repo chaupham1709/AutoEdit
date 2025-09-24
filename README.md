@@ -36,7 +36,7 @@ Checkpoint path can be downloaded [here](https://drive.google.com/drive/folders/
 
 You can run AutoEdit by following these scripts:
 
-DDPM-Inversion: Search for inversion timestep:
+**DDPM-Inversion**: Search for inversion timestep:
 
 ```bash
 python run_training_wo_attention.py \
@@ -45,6 +45,17 @@ python run_training_wo_attention.py \
     --src_prompt "a round cake with orange frosting on a wooden plate" \
     --tgt_prompt "a square cake with orange frosting on a wooden plate" \
     --save_edit_path "output/edit_cake.png"
+```
+
+**P2P**: Conduct the DDPM Inversion and cross-attention ratio search:
+
+```python
+python run_training.py \
+  --checkpoint "exp/ddpm_ppo/checkpoint.ckpt" \
+  --input_image_path "assets/cake.jpg" \
+  --src_prompt "a round cake with orange frosting on a wooden plate" \
+  --tgt_prompt "a square cake with orange frosting on a wooden plate" \
+  --save_edit_path "output/edit_cake.png"
 ```
 
 ## Citation
