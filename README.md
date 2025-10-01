@@ -8,7 +8,7 @@ This is the official implementation of AutoEdit: Automatic Hyperparameter Tuning
 
 ### To-do list
 
-- [ x ] Release inference code.
+- [x] Release inference code.
 - [ ] Release training code.
 
 ## Installation
