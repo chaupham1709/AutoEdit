@@ -2,11 +2,13 @@
 
 This is the official implementation of AutoEdit: Automatic Hyperparameter Tuning for Image Editing (NeurIPS 2025). The paper can be found [here](https://arxiv.org/abs/2509.15031):
 
+![Method](figures/method.png)
+
 ![Automatic tuning the hyperparameters with AutoEdit](figures/image.png)
 
 ### To-do list
 
-- [ ] Release inference code.
+- [ x ] Release inference code.
 - [ ] Release training code.
 
 ## Installation
@@ -51,7 +53,7 @@ python run_training_wo_attention.py \
 
 **P2P**: Conduct the DDPM Inversion and cross-attention ratio search:
 
-```python
+```bash
 python run_training.py \
   --checkpoint "exp/ddpm_ppo/checkpoint.ckpt" \
   --input_image_path "assets/cake.jpg" \
@@ -61,7 +63,7 @@ python run_training.py \
 ```
 
 **Null-text**: Null-text inversion and searching for inversion timestep
-```python
+```bash
 python null_text_inversion.py \
   --checkpoint_path "exp/null_text_ppo/checkpoint.ckpt" \
   --input_image_path "assets/cake.jpg" \
@@ -69,6 +71,18 @@ python null_text_inversion.py \
   --tgt_prompt "a square cake with orange frosting on a wooden plate" \
   --save_edit_path "output/edit_cake.png"
 ```
+
+**Adaptive CFG**:
+```bash
+python run_training_cfg.py \
+    --checkpoint "exp/cfg_ppo/checkpoint.ckpt" \
+    --input_image_path "assets/cake.jpg" \
+    --src_prompt "a round cake with orange frosting on a wooden plate" \
+    --tgt_prompt "a square cake with orange frosting on a wooden plate" \
+    --save_edit_path "output/edit_cake.png"
+```
+
+All scripts are available at ``scripts`` folder.
 
 ## Citation
 
