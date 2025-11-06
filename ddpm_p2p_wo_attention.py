@@ -11,7 +11,7 @@ from ddm_inversion.utils import image_grid
 from diffusers import StableDiffusionPipeline, DDIMScheduler
 from ddpm_inversion_utils import inversion_forward_process, reverse_step
 from torch.utils.data import DataLoader
-from p2p_dataset import collate_fn
+from autoedit_dataset import collate_fn
 from reward import RewardFunction
 import numpy as np
 import os
@@ -101,7 +101,7 @@ class Prompt2PromptDDPM:
             num_inference_steps=self.num_inference_steps
         )
 
-        uncond_embedding = encode_text(self.pipeline, [""] * batch_size, device=src_prompt_embedding.device)
+        uncond_embedding = encode_text(self.pipeline, [""] * batch_size)
 
         timesteps = self.pipeline.scheduler.timesteps.to(init_latents.device)
         xt = xts[:, -1, :, :, :]
@@ -183,7 +183,7 @@ class Prompt2PromptDDPM:
             writer = SummaryWriter(os.path.join(self.args.exp_name, self.args.logging_dir))
         
         self.pipeline = StableDiffusionPipeline.from_pretrained("CompVis/stable-diffusion-v1-4")
-        self.actor = UnetActorDiscrete(1280*2, 768, 2)
+        self.actor = UnetActorDiscrete(1280*2, 768, 2, 2)
         self.pipeline.unet = UnetDownSampling.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="unet")
         self.pipeline.scheduler = DDIMScheduler.from_pretrained("CompVis/stable-diffusion-v1-4", subfolder="scheduler")
         self.pipeline.scheduler.set_timesteps(self.num_inference_steps)
@@ -192,13 +192,11 @@ class Prompt2PromptDDPM:
         self.pipeline.unet.requires_grad_(False)
         self.pipeline.text_encoder.requires_grad_(False)
 
-        self.pipeline.vae.to(accelerator.device)
-        self.pipeline.unet.to(accelerator.device)
-        self.pipeline.text_encoder.to(accelerator.device)
+        self.pipeline.to(accelerator.device)
         self.actor.to(accelerator.device)
 
         optimizer = torch.optim.Adam(self.actor.parameters(), 
-                                     lr=0.5e-3)
+                                     lr=1e-4)
         
         dataloader = DataLoader(
             self.dataset, batch_size=self.args.batch_size, shuffle=True, collate_fn=collate_fn
@@ -549,9 +547,7 @@ class Prompt2PromptDDPMPPO(Prompt2PromptDDPM):
         self.pipeline.text_encoder.requires_grad_(False)
         self.sft_model.requires_grad_(False)
 
-        self.pipeline.vae.to(accelerator.device)
-        self.pipeline.unet.to(accelerator.device)
-        self.pipeline.text_encoder.to(accelerator.device)
+        self.pipeline.to(accelerator.device)
 
         self.actor.to(accelerator.device)
         self.critic.to(accelerator.device)

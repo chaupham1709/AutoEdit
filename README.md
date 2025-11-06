@@ -9,7 +9,7 @@ This is the official implementation of AutoEdit: Automatic Hyperparameter Tuning
 ### To-do list
 
 - [x] Release inference code.
-- [ ] Release training code.
+- [x] Release training code.
 
 ## Installation
 
@@ -83,6 +83,33 @@ python run_training_cfg.py \
 ```
 
 All scripts are available at ``scripts`` folder.
+
+## Training AutoEdit
+
+Prepare the dataset: You can find the dataset [here](https://drive.google.com/file/d/1vI95rLwleXZs_2lUxulI-f06Ngr8XcL1/view?usp=sharing). Put it into the ``data`` folder.
+
+Training AutoEdit for DDPM inversion:
+
+**Stage 1**:SFT training
+```bash
+python run_training_wo_attention.py \
+    --exp_name "exp/ddpm_ppo_sft" \
+    --num_epochs 5 \
+    --low 0.05 \
+    --range 0.6 \
+    --annotation_folder "data/EditBench/EditData" \
+    --train_sft
+```
+
+**Stage 2**: PPO training
+```bash
+python run_training_wo_attention.py \
+    --exp_name "exp/ddpm_ppo_sft" \
+    --num_epochs 15 \
+    --annotation_folder "data/EditBench/EditData" \
+    --train_ppo \
+    --checkpoint "path/to/checkpoint_sft"
+```
 
 ## Citation
 

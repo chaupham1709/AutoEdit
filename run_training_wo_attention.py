@@ -1,4 +1,4 @@
-from p2p_dataset import P2PDataset
+from autoedit_dataset import AutoEditDataset
 from diffusers import StableDiffusionPipeline, DDIMScheduler
 import torch
 import argparse
@@ -37,15 +37,15 @@ def train_first_stage(args):
     pipeline.unet = UnetDownSampling.from_pretrained(model_id, subfolder="unet").to("cuda")
     pipeline.scheduler = DDIMScheduler.from_config(model_id, subfolder="scheduler")
     actor = UnetActorDiscrete(1280*2, 768, 2, 2)
-    dataset = P2PDataset(
-        annotation_folder=args.annotation_folder,
+    dataset = AutoEditDataset(
+        args.annotation_folder,
+        annotation_file="editbench_full.json",
         tokenizer=pipeline.tokenizer
     )
     p2p_ddpm = Prompt2PromptDDPM(
         args,
         dataset=dataset,
         device="cuda",
-        actor=actor,
         alpha1=args.alpha1,
         alpha2=args.alpha2
     )
@@ -62,8 +62,9 @@ def train_ppo(args):
     del pipeline.text_encoder
     del pipeline.vae
 
-    dataset = P2PDataset(
-        annotation_folder=args.annotation_folder,
+    dataset = AutoEditDataset(
+        args.annotation_folder,
+        annotation_file="editbench_full.json",
         tokenizer=tokenizer
     )
 
@@ -72,7 +73,7 @@ def train_ppo(args):
         dataset,
         device="cuda",
         alpha1=3.0,
-        alpha2=1.0,
+        alpha2=3.0,
     )
     p2p_ppo.fit_ppo()
 
